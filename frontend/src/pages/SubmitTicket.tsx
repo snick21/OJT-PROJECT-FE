@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Container,
   Text,
@@ -10,44 +10,34 @@ import {
   Textarea,
   Stack,
   Box,
-  Loader,
-  Center
 } from "@mantine/core";
 
 import { IconChevronRight, IconUsers, IconMail, IconPhoto, IconUser } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
-import { fetchMe } from "../api/authApi";
-import { submitTicket } from "../api/ticketApi";
 import PrimaryButton from "../components/buttons/PrimaryButton";
 import SecondaryButton from "../components/buttons/SecondaryButton";
+
+// Mock user — replace with real auth data when ready
+const mockUser = {
+  username: "John Deren Cantero",
+  email: "derencantero@gmail.com",
+  profile: {
+    team: { name: "Cloud Platform and Management" },
+  },
+};
 
 export default function SubmitTicket() {
 
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
   const [category, setCategory] = useState<string | null>(null);
   const [typeOfIssue, setTypeOfIssue] = useState<string | null>(null);
   const [description, setDescription] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchMe().then(setUser);
-  }, []);
-
-  async function handleSubmit() {
+  function handleSubmit() {
     if (!typeOfIssue) return;
-    setSubmitting(true);
-    const success = await submitTicket({
-      type_of_issue: typeOfIssue,
-      priority: "normal",
-      type: "internal",
-      description,
-    });
-    if (success) navigate("/");
-    setSubmitting(false);
+    // wire up submitTicket() API call here when ready
+    navigate("/");
   }
-
-  if (!user) return <Center h={300}><Loader color="convergeTeal" /></Center>;
 
   return (
     <Container size="xl" py="lg">
@@ -71,19 +61,19 @@ export default function SubmitTicket() {
             <Avatar radius="xl" style={{ background: "#E6F4F4", color: "#038F8D" }}>
               <IconUser size={18} />
             </Avatar>
-            <Text>{user.username}</Text>
+            <Text>{mockUser.username}</Text>
           </Group>
           <Group>
             <Avatar radius="xl" style={{ background: "#E6F4F4", color: "#038F8D" }}>
               <IconUsers size={18} />
             </Avatar>
-            <Text>{user.profile?.team?.name || "No team assigned"}</Text>
+            <Text>{mockUser.profile?.team?.name || "No team assigned"}</Text>
           </Group>
           <Group>
             <Avatar radius="xl" style={{ background: "#E6F4F4", color: "#038F8D" }}>
               <IconMail size={18} />
             </Avatar>
-            <Text>{user.email}</Text>
+            <Text>{mockUser.email}</Text>
           </Group>
         </Group>
       </Paper>
@@ -97,8 +87,8 @@ export default function SubmitTicket() {
           <Select
             placeholder="Choose a type of category"
             data={[
-              { value: "it", label: "IT Support" },
-              { value: "network", label: "Network" },
+              { value: "it",       label: "IT Support" },
+              { value: "network",  label: "Network" },
               { value: "hardware", label: "Hardware" },
             ]}
             value={category}
@@ -120,8 +110,8 @@ export default function SubmitTicket() {
             placeholder="Choose a type of issue"
             data={[
               { value: "Network Connectivity Issue", label: "Network Connectivity Issue" },
-              { value: "Software Issue", label: "Software Issue" },
-              { value: "Hardware Issue", label: "Hardware Issue" },
+              { value: "Software Issue",             label: "Software Issue" },
+              { value: "Hardware Issue",             label: "Hardware Issue" },
             ]}
             value={typeOfIssue}
             onChange={setTypeOfIssue}

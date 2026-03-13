@@ -8,12 +8,18 @@ import {
   Select,
   Divider,
   Box,
+  Badge,
 } from "@mantine/core";
 import { IconChevronRight } from "@tabler/icons-react";
-import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../components/buttons/PrimaryButton";
+import SecondaryButton from "../components/buttons/SecondaryButton";
+import type { Ticket } from "../types/ticket";
 
-// Mock assignees — replace with API data
+interface Props {
+  ticket: Ticket;
+  onBack: () => void;
+}
+
 const ASSIGNEES = [
   { value: "nicholas", label: "Nicholas Alley Samia" },
   { value: "gabriel",  label: "Gabriel Pecson" },
@@ -21,14 +27,18 @@ const ASSIGNEES = [
   { value: "maria",    label: "Maria Santos" },
 ];
 
-// Mock ticket — replace with useParams() + fetchTicket(id)
-const mockTicket = {
-  ticket_number: "CICT 0009",
+const STATUS_OPTIONS = [
+  { value: "todo",     label: "To Do" },
+  { value: "progress", label: "In Progress" },
+  { value: "hold",     label: "On Hold" },
+  { value: "done",     label: "Done" },
+];
+
+// Mock extra details — replace with API data per ticket when ready
+const mockDetails = {
   title: "Unable to Connect to Office Network",
-  incident_type: "Network Connectivity Issue",
   problem: "User is unable to connect to the office network. Internet access is unavailable, preventing access to internal systems, shared drives, and company applications.",
   anything_we_should_know: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla eget elit urna. Ut id ex ut eros tempus mollis vel et urna. Nullam vulputate vestibulum orci, ac aliquet dolor fringilla eget.",
-  status: "open",
   requestor: "Gabriel Pecson",
   type_of_requestor: "JIRA",
   raw_sla: "04:00:00",
@@ -36,21 +46,20 @@ const mockTicket = {
   normalized_sla: "03:30:00",
 };
 
-export default function ViewTicket() {
-  const navigate = useNavigate();
-  const [assignee, setAssignee] = useState<string | null>("nicholas");
-  const [status, setStatus] = useState<string | null>(mockTicket.status);
+export default function ViewTicket({ ticket, onBack }: Props) {
+  const [assignee, setAssignee] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(ticket.status);
 
   return (
     <Container size="xl" py="lg">
 
       {/* BREADCRUMB */}
       <Group mb="lg">
-        <Text fw={700} c="convergeTeal.9" style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+        <Text fw={700} c="convergeTeal.9" style={{ cursor: "pointer" }} onClick={onBack}>
           GHIDORA
         </Text>
         <IconChevronRight size={16} color="#424242" />
-        <Text fw={500} c="#424242" style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+        <Text fw={500} c="#424242" style={{ cursor: "pointer" }} onClick={onBack}>
           Dashboard
         </Text>
         <IconChevronRight size={16} color="#424242" />
@@ -64,9 +73,19 @@ export default function ViewTicket() {
 
       {/* TICKET NUMBER BANNER */}
       <Paper withBorder radius="md" p="md" mb="lg" style={{ background: "#f8fafa" }}>
-        <Text fw={700} size="lg" c="convergeTeal.5" style={{ letterSpacing: 0.5 }}>
-          TICKET NO. {mockTicket.ticket_number}
-        </Text>
+        <Group justify="space-between">
+          <Text fw={700} size="lg" c="convergeTeal.5" style={{ letterSpacing: 0.5 }}>
+            TICKET NO. {ticket.id}
+          </Text>
+          <Group gap="xs">
+            <Badge color={ticket.priority === "urgent" ? "red" : "gray"} variant="light">
+              {ticket.priority}
+            </Badge>
+            <Badge color="convergeTeal" variant="light">
+              {ticket.type}
+            </Badge>
+          </Group>
+        </Group>
       </Paper>
 
       {/* MAIN CONTENT */}
@@ -75,40 +94,36 @@ export default function ViewTicket() {
 
           {/* LEFT — ticket info */}
           <Box>
-            {/* TICKET TITLE */}
             <Box mb="lg">
               <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={4}>Ticket Title</Text>
               <Group gap="xs" align="flex-start">
                 <Text size="xs" fw={700} c="dimmed">:</Text>
-                <Text size="sm">{mockTicket.title}</Text>
+                <Text size="sm">{mockDetails.title}</Text>
               </Group>
             </Box>
 
-            {/* INCIDENT TYPE */}
             <Box mb="lg">
               <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={4}>Incident Type</Text>
               <Group gap="xs">
                 <Text size="xs" fw={700} c="dimmed">:</Text>
-                <Text size="sm">{mockTicket.incident_type}</Text>
+                <Text size="sm">{ticket.type_of_issue}</Text>
               </Group>
             </Box>
 
-            {/* PROBLEM/CONCERN */}
             <Box mb="lg">
               <Group gap="xs" mb={6}>
                 <Text size="xs" fw={700} c="dimmed" tt="uppercase">Problem/Concern</Text>
                 <Text size="xs" fw={700} c="dimmed">:</Text>
               </Group>
-              <Text size="sm" c="#333">{mockTicket.problem}</Text>
+              <Text size="sm" c="#333">{mockDetails.problem}</Text>
             </Box>
 
-            {/* ANYTHING WE SHOULD KNOW */}
             <Box>
               <Group gap="xs" mb={6}>
                 <Text size="xs" fw={700} c="dimmed" tt="uppercase">Anything We Should Know</Text>
                 <Text size="xs" fw={700} c="dimmed">:</Text>
               </Group>
-              <Text size="sm" c="#333">{mockTicket.anything_we_should_know}</Text>
+              <Text size="sm" c="#333">{mockDetails.anything_we_should_know}</Text>
             </Box>
           </Box>
 
@@ -122,12 +137,7 @@ export default function ViewTicket() {
             <Group mb="xl">
               <Select
                 placeholder="Status"
-                data={[
-                  { value: "open",        label: "Open" },
-                  { value: "in_progress", label: "In Progress" },
-                  { value: "on_hold",     label: "On Hold" },
-                  { value: "done",        label: "Done" },
-                ]}
+                data={STATUS_OPTIONS}
                 value={status}
                 onChange={setStatus}
                 w={140}
@@ -141,10 +151,9 @@ export default function ViewTicket() {
               <PrimaryButton label="Archive" onClick={() => {}} />
             </Group>
 
-            {/* DETAILS SECTION */}
+            {/* DETAILS */}
             <Text fw={700} size="md" mb="md">DETAILS</Text>
 
-            {/* ASSIGNEE */}
             <Group justify="space-between" align="center" mb="md">
               <Text size="xs" fw={700} c="dimmed" tt="uppercase">Assignee</Text>
               <Select
@@ -164,47 +173,47 @@ export default function ViewTicket() {
               />
             </Group>
 
-            {/* REQUESTOR */}
             <Group mb="md" gap="xs">
               <Text size="xs" fw={700} c="dimmed" tt="uppercase" w={180}>Requestor</Text>
               <Text size="xs" fw={700} c="dimmed">:</Text>
-              <Text size="sm">{mockTicket.requestor}</Text>
+              <Text size="sm">{mockDetails.requestor}</Text>
             </Group>
 
-            {/* TYPE OF REQUESTOR */}
             <Group mb="xl" gap="xs">
               <Text size="xs" fw={700} c="dimmed" tt="uppercase" w={180}>Type of Requestor</Text>
               <Text size="xs" fw={700} c="dimmed">:</Text>
-              <Text size="sm">{mockTicket.type_of_requestor}</Text>
+              <Text size="sm">{mockDetails.type_of_requestor}</Text>
             </Group>
 
             {/* SLA TRACKING */}
             <Text fw={700} size="md" mb="md">SLA TRACKING</Text>
 
-            {/* RAW SLA */}
             <Group mb="md" gap="xs">
               <Text size="xs" fw={700} c="dimmed" tt="uppercase" w={180}>Raw SLA</Text>
               <Text size="xs" fw={700} c="dimmed">:</Text>
-              <Text size="sm">{mockTicket.raw_sla}</Text>
+              <Text size="sm">{mockDetails.raw_sla}</Text>
             </Group>
 
-            {/* PAUSED TIME */}
             <Group mb="md" gap="xs">
               <Text size="xs" fw={700} c="dimmed" tt="uppercase" w={180}>Paused Time</Text>
               <Text size="xs" fw={700} c="dimmed">:</Text>
-              <Text size="sm">{mockTicket.paused_time}</Text>
+              <Text size="sm">{mockDetails.paused_time}</Text>
             </Group>
 
-            {/* NORMALIZED SLA */}
             <Group gap="xs">
               <Text size="xs" fw={700} c="dimmed" tt="uppercase" w={180}>Normalized SLA</Text>
               <Text size="xs" fw={700} c="dimmed">:</Text>
-              <Text size="sm">{mockTicket.normalized_sla}</Text>
+              <Text size="sm">{mockDetails.normalized_sla}</Text>
             </Group>
 
           </Box>
         </div>
       </Paper>
+
+      {/* BACK BUTTON */}
+      <Group mt="lg">
+        <SecondaryButton label="Back to Dashboard" onClick={onBack} />
+      </Group>
 
     </Container>
   );
